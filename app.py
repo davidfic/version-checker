@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, jsonify
+from flask import Flask, jsonify,make_response
 
 
 app = Flask(__name__)
@@ -19,35 +19,41 @@ def get_version(url):
     return str(release_list[1])[str(release_list[1]).index('>')+1:-4]
 
 @app.route('/terraform')
-def get_terraform_version():
-    return jsonify(get_version(hashicorp_base_url + 'terraform'))
+def get_terraform_latest_version():
+    return get_version(hashicorp_base_url + 'terraform')
 
 @app.route('/vault')
 def get_vault_latest_version():
-    return jsonify(get_version(hashicorp_base_url + 'vault'))
+    
+    return get_version(hashicorp_base_url + 'vault')
 
 @app.route('/')
 def index():
-    return 'hello'
+    all_release_versions = {}
+    all_release_versions = {'terraform': get_terraform_latest_version(), 
+                        'vault': get_vault_latest_version(),
+                        'gke-stable': get_gke_stable_release(),
+                        'gke-regular': get_gke_regular_release()}
+
+    return all_release_versions
 
 
 def gke_release_version(channel):
     resp = requests.get(channel)
     soup = BeautifulSoup(resp.text, 'html.parser')
-    stable_release_number = soup.find('div', {'class': 'release-changed'}).find('p')
-    str_rel = str(stable_release_number)
+    release_number = soup.find('div', {'class': 'release-changed'}).find('p')
+    str_rel = str(release_number)
     rel_num = str_rel[3:str_rel.index(' ')]
     return rel_num
 
 @app.route('/gke-stable')
 def get_gke_stable_release():
-    return jsonify(gke_release_version(release_channel['stable']))
+    return gke_release_version(release_channel['stable'])
 
 
 @app.route('/gke-regular')
 def get_gke_regular_release():
-    return jsonify(gke_release_version(release_channel['regular']))
-
+    return gke_release_version(release_channel['regular'])
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0',port='8080')
+    app.run(debug=True, host='0.0.0.0',port='8080')

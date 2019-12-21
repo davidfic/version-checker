@@ -5,7 +5,8 @@ from flask import Flask, jsonify,make_response
 
 app = Flask(__name__)
 
-hashicorp_base_url = 'https://releases.hashicorp.com/'
+hashicorp_urls = {'terraform': 'https://releases.hashicorp.com/terraform',
+                'vault': 'https://releases.hashicorp.com/vault'}
 
 release_channel = {'stable': 'https://cloud.google.com/kubernetes-engine/docs/release-notes-stable', 
                     'regular': 'https://cloud.google.com/kubernetes-engine/docs/release-notes-regular',
@@ -16,16 +17,18 @@ def get_version(url):
     resp = requests.get(url)
     soup = BeautifulSoup(resp.text, 'html.parser')
     release_list = soup.find_all('a')
+    if 'vault' in url:
+        #ugly hack to avoid the hsm versions
+        return str(release_list[1])[str(release_list[1]).index('>')+1:str(release_list[1]).index('>')+12]
     return str(release_list[1])[str(release_list[1]).index('>')+1:-4]
 
 @app.route('/terraform')
 def get_terraform_latest_version():
-    return get_version(hashicorp_base_url + 'terraform')
+    return get_version(hashicorp_urls['terraform'])
 
 @app.route('/vault')
 def get_vault_latest_version():
-    
-    return get_version(hashicorp_base_url + 'vault')
+    return get_version(hashicorp_urls['vault'])
 
 @app.route('/')
 def index():
@@ -42,9 +45,7 @@ def gke_release_version(channel):
     resp = requests.get(channel)
     soup = BeautifulSoup(resp.text, 'html.parser')
     release_number = soup.find('div', {'class': 'release-changed'}).find('p')
-    str_rel = str(release_number)
-    rel_num = str_rel[3:str_rel.index(' ')]
-    return rel_num
+    return str(release_number)[3:str_rel.index(' ')]
 
 @app.route('/gke-stable')
 def get_gke_stable_release():

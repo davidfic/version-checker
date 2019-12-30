@@ -34,10 +34,10 @@ def get_vault_latest_version():
 def index():
     all_release_versions = {}
     all_release_versions = {'terraform': get_terraform_latest_version(), 
-                        'vault': get_vault_latest_version(),
-                        'gke-stable': get_gke_stable_release(),
-                        'gke-regular': get_gke_regular_release(),
-                        'gke-rapid': get_gke_rapid_release()}
+                            'vault': get_vault_latest_version(),
+                            'gke-stable': get_gke_stable_release(),
+                            'gke-regular': get_gke_regular_release(),
+                            'gke-rapid': get_gke_rapid_release()}
 
     return all_release_versions
 
@@ -67,6 +67,26 @@ def get_gke_rapid_release():
 
     start = str(latest_release).index('>')+1
     return str(latest_release)[start:-5]
+
+@app.route('/gke-stable-all')
+def get_gke_stable_release_all():
+    resp = requests.get(release_channel['stable'])
+    soup = BeautifulSoup(resp.text, 'html.parser')
+    release_changed = soup.find_all('div', {'class': 'release-changed'})
+
+    ps = []
+    for release in release_changed:
+        ps.append(release.find('p'))
+
+    versions = {}
+    count = 0 
+    for tag_release in ps:
+        tag_text = tag_release.text
+        if tag_text.lstrip().startswith('v'):
+            versions[count] = (tag_text.lstrip()[1:tag_text.lstrip().index(' ')])
+            count += 1
+    return versions
+
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0',port='8080')

@@ -68,12 +68,11 @@ def get_gke_rapid_release():
     start = str(latest_release).index('>')+1
     return str(latest_release)[start:-5]
 
-@app.route('/gke-stable-all')
-def get_gke_stable_release_all():
-    resp = requests.get(release_channel['stable'])
+
+def get_releases(channel):
+    resp = requests.get(release_channel[channel])
     soup = BeautifulSoup(resp.text, 'html.parser')
     release_changed = soup.find_all('div', {'class': 'release-changed'})
-
     ps = []
     for release in release_changed:
         ps.append(release.find('p'))
@@ -86,6 +85,16 @@ def get_gke_stable_release_all():
             versions[count] = (tag_text.lstrip()[1:tag_text.lstrip().index(' ')])
             count += 1
     return versions
+
+@app.route('/gke-stable-all')
+def get_gke_stable_release_all():
+    return get_releases('stable')
+
+
+@app.route('/gke-regular-all')
+def get_gke_regular_release_all():
+    return get_releases('regular')
+
 
 
 if __name__ == "__main__":

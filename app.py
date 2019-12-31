@@ -4,7 +4,12 @@ from flask import Flask, jsonify
 
 
 app = Flask(__name__)
-
+releases = {}
+releases['vault'] = []
+releases['terraform'] = []
+releases['gke-stable'] = []
+releases['gke-regular'] = []
+releases['gke-rapid'] = []
 hashicorp_urls = {'terraform': 'https://releases.hashicorp.com/terraform',
                 'vault': 'https://releases.hashicorp.com/vault'}
 
@@ -13,10 +18,24 @@ release_channel = {'stable': 'https://cloud.google.com/kubernetes-engine/docs/re
                     'rapid': 'https://cloud.google.com/kubernetes-engine/docs/release-notes-rapid'
 }
 
-def get_version(url):
+def get_anchors(url):
     resp = requests.get(url)
     soup = BeautifulSoup(resp.text, 'html.parser')
-    release_list = soup.find_all('a')
+    return soup.find_all('a')
+
+def get_versions(url, software):
+    release_list = get_anchors(url)
+    versions = []
+    for release in release_list:
+        if release.text.startswith('v'):
+            versions.append(release.text)
+    return versions
+    
+
+def get_version(url):
+    # resp = requests.get(url)
+    # soup = BeautifulSoup(resp.text, 'html.parser')
+    release_list = get_anchors(url)
     if 'vault' in url:
         #ugly hack to avoid the hsm versions
         return str(release_list[1])[str(release_list[1]).index('>')+1:str(release_list[1]).index('>')+12]
@@ -29,6 +48,14 @@ def get_terraform_latest_version():
 @app.route('/vault')
 def get_vault_latest_version():
     return get_version(hashicorp_urls['vault'])
+
+@app.route('/vault-all')
+def get_all_vault_versions():
+    vault_versions = get_versions(hashicorp_urls['vault'], 'vault')
+    return jsonify(vault_versions)
+
+    
+     
 
 @app.route('/')
 def index():
@@ -98,4 +125,5 @@ def get_gke_regular_release_all():
 
 
 if __name__ == "__main__":
+    
     app.run(debug=True, host='0.0.0.0',port='8080')

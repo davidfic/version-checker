@@ -23,12 +23,14 @@ def get_anchors(url):
     soup = BeautifulSoup(resp.text, 'html.parser')
     return soup.find_all('a')
 
-def get_versions(url, software):
+def get_versions(url):
     release_list = get_anchors(url)
     versions = []
     for release in release_list:
         if release.text.startswith('v'):
             versions.append(re.sub('[-+]', '', release.text[:12]))
+        elif release.text.startswith('t'):
+            versions.append(release.text)
     return versions
     
 
@@ -49,10 +51,14 @@ def get_vault_latest_version():
 
 @app.route('/vault-all')
 def get_all_vault_versions():
-    vault_versions = get_versions(hashicorp_urls['vault'], 'vault')
+    vault_versions = get_versions(hashicorp_urls['vault'])
     return jsonify(vault_versions)
 
-    
+
+@app.route('/terraform-all')
+def get_all_terraform_versions():
+    terraform_versions = get_versions(hashicorp_urls['terraform'])
+    return jsonify(terraform_versions)
      
 
 @app.route('/')

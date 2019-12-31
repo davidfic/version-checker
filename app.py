@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, jsonify
-
+import re
 
 app = Flask(__name__)
 releases = {}
@@ -28,13 +28,11 @@ def get_versions(url, software):
     versions = []
     for release in release_list:
         if release.text.startswith('v'):
-            versions.append(release.text)
+            versions.append(re.sub('[-+]', '', release.text[:12]))
     return versions
     
 
 def get_version(url):
-    # resp = requests.get(url)
-    # soup = BeautifulSoup(resp.text, 'html.parser')
     release_list = get_anchors(url)
     if 'vault' in url:
         #ugly hack to avoid the hsm versions

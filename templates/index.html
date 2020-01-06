@@ -6,9 +6,9 @@
 {% block content %}
   {% for item in software %}
   <p>{{item}} 
-      <!-- {% if item in release_notes %}
+      {% if item in release_notes %}
         Release notes url is : <a href={{release_notes[item]}}>{{item}}</a>
-      {% endif %} -->
+      {% endif %}
   </p>
   
   {% endfor %}

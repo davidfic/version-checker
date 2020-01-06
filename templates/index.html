@@ -1,0 +1,17 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}Release notes and versions for 3rd Party Software{% endblock %}
+
+
+
+{% block content %}
+  {% for item, release in software, releases %}
+  <p>{{item}} 
+      {% if item in release_notes %}
+        Release notes url is : <a href={{release_notes[item]}}>{{item}}</a>
+      {% endif %}
+  </p>
+  
+  {% endfor %}
+{% endblock %}
+
+

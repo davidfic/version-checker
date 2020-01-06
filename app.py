@@ -1,15 +1,25 @@
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 import re
+from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
+Bootstrap(app)
+
+release_notes_urls = {'gke-stable': 'https://cloud.google.com/kubernetes-engine/docs/release-notes-stable',
+                      'gke-rapid': 'https://cloud.google.com/kubernetes-engine/docs/release-notes-rapid',
+                      'gke-regular': 'https://cloud.google.com/kubernetes-engine/docs/release-notes-regular',
+                      'vault': 'https://github.com/hashicorp/vault/blob/master/CHANGELOG.md',
+                      'terraform': 'https://github.com/hashicorp/terraform/blob/master/CHANGELOG.md'
+                    }   
 releases = {}
 releases['vault'] = []
 releases['terraform'] = []
 releases['gke-stable'] = []
 releases['gke-regular'] = []
 releases['gke-rapid'] = []
+
 hashicorp_urls = {'terraform': 'https://releases.hashicorp.com/terraform',
                 'vault': 'https://releases.hashicorp.com/vault'}
 
@@ -17,6 +27,8 @@ release_channel = {'stable': 'https://cloud.google.com/kubernetes-engine/docs/re
                     'regular': 'https://cloud.google.com/kubernetes-engine/docs/release-notes-regular',
                     'rapid': 'https://cloud.google.com/kubernetes-engine/docs/release-notes-rapid'
 }
+
+software = ['gke-stable', 'gke-rapid', 'gke-regular', 'vault', 'terraform']
 
 def get_anchors(url):
     resp = requests.get(url)
@@ -38,8 +50,13 @@ def get_version(url):
     release_list = get_anchors(url)
     if 'vault' in url:
         #ugly hack to avoid the hsm versions
-        return str(release_list[1])[str(release_list[1]).index('>')+1:str(release_list[1]).index('>')+12]
-    return str(release_list[1])[str(release_list[1]).index('>')+1:-4]
+        return release_list[1].text[:11]
+    # return str(release_list[1])[str(release_list[1]).index('>')+1:-4]
+    return release_list[1].text
+
+def get_release_notes(software):
+    resp = requests.get(release_notes)
+
 
 @app.route('/terraform')
 def get_terraform_latest_version():
@@ -70,7 +87,8 @@ def index():
                             'gke-regular': get_gke_regular_release(),
                             'gke-rapid': get_gke_rapid_release()}
 
-    return all_release_versions
+    # return all_release_versions
+    return render_template('index.html', releases=all_release_versions, software=software, release_notes=release_notes_urls)
 
 
 def gke_release_version(channel):

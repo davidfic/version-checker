@@ -4,14 +4,50 @@
 
 
 {% block content %}
-  {% for item in software %}
-  <p><b>{{item}}: </b>
-      {% if item in release_notes %}
-         <a href={{release_notes[item]}}>Release Notes</a>
-      {% endif %}
-  </p>
-  
-  {% endfor %}
+<div class="container">
+  <div class="jumbotron">
+    <h1 class="display-4">Versions of our Software</h1>
+    <p class="lead">Versions of our software we use</p>
+    <hr class="my-4">
+    <p>Simple web service to return versions of software</p>
+    <!-- <p class="lead">
+      <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
+    </p> -->
+  </div>
+</div> <!--class container -->
+
+
+<div class="container" >
+    {% for item in software %}  
+      {% if 'gke' in item %}
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="card">
+                <img src="{{url_for('static', filename='img/k8s-logo.jpg')}}" class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">{{item}}</h5>
+                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                <a href="{{release_notes[item]}}" class="btn btn-primary">Release Notes</a>
+              </div> <!-- card body-->
+            </div> <!-- card-->
+          </div> <!-- col-sm-6-->
+        </div>
+        {% else %}
+        <div class="row">
+            <div class="col-sm-6">
+              <div class="card">
+                  <img src="{{url_for('static', filename='img/hashicorp.png')}}" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title">{{item}}</h5>
+                  <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                  <a href="{{release_notes[item]}}" class="btn btn-primary">Release Notes</a>
+                </div> <!-- card body-->
+              </div> <!-- card-->
+            </div> <!-- col-sm-6-->
+          </div>
+        {% endif %}
+        
+        {% endfor %}
+</div>
+
 {% endblock %}
-
-
